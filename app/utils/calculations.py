@@ -193,7 +193,7 @@ def calculate_EE2(db: Session, client_id: int, year: int, month: int) -> Tuple[f
                 })
 
                 quantity += ee2
-                total += ee2 * tariff
+                total += (ee2 * tariff)
 
     return quantity,registers,total
 
@@ -203,8 +203,6 @@ def calculate_all_concepts(db: Session, client_id: int, year: int, month: int) -
     ec_quantity, ec_rate, ec_total = calculate_EC(db, client_id, year, month)
     ee1_quantity, ee1_rate, ee1_total = calculate_EE1(db, client_id, year, month)
     ee2_quantity, ee2_rate, ee2_total = calculate_EE2(db, client_id, year, month)
-    print(ee2_quantity, ee2_rate, ee2_total)
-    total_invoice = ea_total + ec_total + ee1_total + ee2_total
     
     return {
         "client_id": client_id,
@@ -229,8 +227,7 @@ def calculate_all_concepts(db: Session, client_id: int, year: int, month: int) -
             "quantity": ee2_quantity,
             "registers": ee2_rate,
             "total": ee2_total
-        },
-        "total": total_invoice
+        }
     }
 
 # calcular estadisticas OK 

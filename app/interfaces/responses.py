@@ -26,7 +26,6 @@ class InvoiceCalculationResponse(BaseModel):
     EC: ConceptCalculation
     EE1: ConceptCalculation
     EE2: ConceptResponseEE2
-    total: float
 
 class HourlySystemLoad(BaseModel):
     hour: int
