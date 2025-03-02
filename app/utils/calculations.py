@@ -160,7 +160,7 @@ def calculate_EE2(db: Session, client_id: int, year: int, month: int) -> Tuple[f
     quantity = 0
     total = 0
     registers = []
-        #150                #100
+   
     if total_injection > total_consumption:
     
         accumulate_consumption = 0
@@ -170,26 +170,31 @@ def calculate_EE2(db: Session, client_id: int, year: int, month: int) -> Tuple[f
             accumulate_consumption += record['consumption_value'] if record['consumption_value'] is not None else 0
             accumulate_injection += record['injection_value'] if record['injection_value'] is not None else 0
 
-            # si ee1 menor o igual a consumo ee2=0 y tartifa negativa
+           
             if accumulate_injection <= total_consumption:
                 datetime = record['record_timestamp']
                 tariff = -record['agent_value']
                 registers.append({
                     'datetime': datetime,
                     'ee2': 0,
-                    'tariff': tariff
+                    'tariff': tariff,
+                    'total_hour': 0
                 })
+
+            if(accumulate_injection > total_consumption and quantity == 0):
+                ee2 = accumulate_injection - total_consumption 
+            else:
+                ee2 = record['injection_value'] if record['injection_value'] is not None else 0
 
             if accumulate_injection > total_consumption:
                 datetime = record['record_timestamp']
                 tariff = record['agent_value']
-                
-                ee2 = record['injection_value'] if record['injection_value'] is not None else 0
-
+            
                 registers.append({
                     'datetime': datetime,
                     'ee2': ee2,
-                    'tariff': tariff
+                    'tariff': tariff,
+                    'total_hour': (ee2 * tariff)
                 })
 
                 quantity += ee2
