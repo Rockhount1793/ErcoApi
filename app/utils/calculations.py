@@ -128,9 +128,7 @@ def calculate_EE2(db: Session, client_id: int, year: int, month: int) -> Tuple[f
         Record.record_timestamp,
         Injection.value.label('injectionvalue'),
         Consumption.value.label('consumptionvalue'),
-        XmDataHourlyPerAgent.value.label('agentvalue'),
-        func.sum(Consumption.value).label('sum_comcumption'),
-        func.sum(Injection.value).label('sum_injection')
+        XmDataHourlyPerAgent.value.label('agentvalue')
     ).join(
         Injection, Record.id_record == Injection.id_record, isouter=True
     ).join(
