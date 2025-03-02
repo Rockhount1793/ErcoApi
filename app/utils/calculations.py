@@ -56,8 +56,8 @@ def calculate_EA(db: Session, client_id: int, year: int, month: int) -> Tuple[fl
 
     if not tariff:
         raise ValueError("Tariff not found for the given service parameters")
-    cu_rate = tariff.Cu
-    return total_consumption, cu_rate, total_consumption * cu_rate
+    
+    return total_consumption, tariff.Cu, total_consumption * tariff.Cu
 
 # calcular EC OK
 def calculate_EC(db: Session, client_id: int, year: int, month: int) -> Tuple[float, float, float]:
@@ -83,8 +83,8 @@ def calculate_EC(db: Session, client_id: int, year: int, month: int) -> Tuple[fl
 
     if not tariff:
         raise ValueError("Tariff not found for the given service parameters")
-    cu_rate = tariff.Cu
-    return total_injection, cu_rate, total_injection * cu_rate
+    
+    return total_injection, tariff.Cu, total_injection * tariff.Cu
 
 # calcular EE1 OK
 def calculate_EE1(db: Session, client_id: int, year: int, month: int) -> Tuple[float, float, float]:
@@ -111,8 +111,8 @@ def calculate_EE1(db: Session, client_id: int, year: int, month: int) -> Tuple[f
 
     if not tariff:
         raise ValueError("Tariff not found for the given service parameters")
-    cu_rate = tariff.Cu
-    return ee1_quantity, -cu_rate, ee1_quantity*-cu_rate
+   
+    return ee1_quantity, -tariff.Cu, ee1_quantity*-tariff.Cu
 
 # calcular EE2 OK
 def calculate_EE2(db: Session, client_id: int, year: int, month: int) -> Tuple[float, float, float]:
@@ -155,31 +155,36 @@ def calculate_EE2(db: Session, client_id: int, year: int, month: int) -> Tuple[f
     } for record in results]
     
     total_injection = sum(record["injection_value"] for record in combined_list if record['injection_value'] is not None)
-
     total_consumption = sum(record["consumption_value"] for record in combined_list if record['consumption_value'] is not None)
-
-    EEv = min(total_injection, total_consumption)
     
     quantity = 0
     total = 0
     registers = []
-
+        #150                #100
     if total_injection > total_consumption:
     
-        #accumulate_consumption = 0
+        accumulate_consumption = 0
         accumulate_injection = 0
     
         for record in combined_list:
-            #accumulate_consumption += record['consumption_value'] if record['consumption_value'] is not None else 0
+            accumulate_consumption += record['consumption_value'] if record['consumption_value'] is not None else 0
             accumulate_injection += record['injection_value'] if record['injection_value'] is not None else 0
 
-            if accumulate_injection > EEv:
+            # si ee1 menor o igual a consumo ee2=0 y tartifa negativa
+            if accumulate_injection <= total_consumption:
+                datetime = record['record_timestamp']
+                tariff = -record['agent_value']
+                registers.append({
+                    'datetime': datetime,
+                    'ee2': 0,
+                    'tariff': tariff
+                })
+
+            if accumulate_injection > total_consumption:
                 datetime = record['record_timestamp']
                 tariff = record['agent_value']
-                if not registers:
-                    ee2 = accumulate_injection - EEv
-                else:
-                    ee2 = record['injection_value'] if record['injection_value'] is not None else 0
+                
+                ee2 = record['injection_value'] if record['injection_value'] is not None else 0
 
                 registers.append({
                     'datetime': datetime,
